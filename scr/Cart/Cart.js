@@ -17,4 +17,16 @@ export default class Cart {
       return total + item.product.price * item.quantity;
     }, 0);
   }
+
+  remove(product) {
+    const itemToRemove = { product };
+    remove(this.items, itemToRemove);
+  }
+
+  checkout() {
+    return {
+      total: this.getTotal(),
+      items: this.items,
+    };
+  }
 }
