@@ -1,14 +1,14 @@
-module.exports.sum = (num1, num2) => {
-  const int1 = parseInt(num1,10)
-  const int2 = parseInt(num2,10)
+export function sum(num1, num2) {
+  const int1 = parseInt(num1, 10);
+  const int2 = parseInt(num2, 10);
 
-  if(Number.isNaN(int1) || Number.isNaN(int2)){
-    throw new Error('Please, verify your input')
+  if (Number.isNaN(int1) || Number.isNaN(int2)) {
+    throw new Error('Please, verify your input');
   }
 
-  return parseInt(num1,10) + parseInt(num2,10)
-};
+  return parseInt(num1, 10) + parseInt(num2, 10);
+}
 
-module.exports.sub = (num1,num2)=>{
-  return num1 - num2
+export function sub(num1, num2) {
+  return num1 - num2;
 }
