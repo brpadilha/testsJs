@@ -19,6 +19,29 @@ const calculateQuantityDiscount = (amount, item) => {
   return Money({ amount: 0 });
 };
 
+const calculateDiscount = (amount, quantity, condition) => {
+  const list = Array.isArray(condition) ? condition : [condition];
+
+  const [higherDiscount] = list
+    .map((cond) => {
+      if (cond.percentage) {
+        return calculatePercentageDiscount(amount, {
+          condition: cond,
+          quantity,
+        }).getAmount();
+      }
+      if (cond.quantity) {
+        return calculateQuantityDiscount(amount, {
+          condition: cond,
+          quantity,
+        }).getAmount();
+      }
+    })
+    .sort((a, b) => b - a);
+
+  return Money({ amount: higherDiscount });
+};
+
 const Money = Dinero;
 
 Money.defaultCurrency = 'BRL';
@@ -40,11 +63,15 @@ export default class Cart {
       const amount = Money({ amount: item.product.price * item.quantity });
       let discount = Money({ amount: 0 });
 
-      if (item.condition?.percentage) {
-        discount = calculatePercentageDiscount(amount, item);
-      } else if (item.condition?.quantity) {
-        discount = calculateQuantityDiscount(amount, item);
+      if (item.condition) {
+        discount = calculateDiscount(amount, item.quantity, item.condition);
       }
+
+      // if (item.condition?.percentage) {
+      //   discount = calculatePercentageDiscount(amount, item);
+      // } else if (item.condition?.quantity) {
+      //   discount = calculateQuantityDiscount(amount, item);
+      // }
 
       return total.add(amount).subtract(discount);
     }, Money({ amount: 0 }));
