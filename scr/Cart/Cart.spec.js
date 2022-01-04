@@ -102,4 +102,35 @@ describe('Cart', () => {
       expect(cart.getTotal().getAmount()).toEqual(0);
     });
   });
+
+  describe('special conditions', () => {
+    it('should aply percentage discount above minimum is passed', () => {
+      const condition = {
+        percentage: 30,
+        minimum: 2,
+      };
+
+      cart.add({
+        product,
+        condition,
+        quantity: 3,
+      });
+
+      expect(cart.getTotal().getAmount()).toEqual(74315);
+    });
+
+    it('should aply quantity discount for even quantities', () => {
+      const condition = {
+        quantity: 2,
+      };
+
+      cart.add({
+        product,
+        condition,
+        quantity: 4,
+      });
+
+      expect(cart.getTotal().getAmount()).toEqual(70776);
+    });
+  });
 });
