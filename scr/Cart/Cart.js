@@ -1,46 +1,7 @@
 import find from 'lodash/find';
 import remove from 'lodash/remove';
 import Dinero from 'dinero.js';
-
-const calculatePercentageDiscount = (amount, item) => {
-  if (item.condition?.percentage && item.quantity > item.condition.minimum) {
-    return amount.percentage(item.condition.percentage);
-  }
-  return Money({ amount: 0 });
-};
-
-const calculateQuantityDiscount = (amount, item) => {
-  const isEven = item.quantity % 2 === 0;
-
-  if (item.condition?.quantity && item.quantity > item.condition.quantity) {
-    return amount.percentage(isEven ? 50 : 40);
-  }
-
-  return Money({ amount: 0 });
-};
-
-const calculateDiscount = (amount, quantity, condition) => {
-  const list = Array.isArray(condition) ? condition : [condition];
-
-  const [higherDiscount] = list
-    .map((cond) => {
-      if (cond.percentage) {
-        return calculatePercentageDiscount(amount, {
-          condition: cond,
-          quantity,
-        }).getAmount();
-      }
-      if (cond.quantity) {
-        return calculateQuantityDiscount(amount, {
-          condition: cond,
-          quantity,
-        }).getAmount();
-      }
-    })
-    .sort((a, b) => b - a);
-
-  return Money({ amount: higherDiscount });
-};
+import { calculateDiscount } from '../lib/discount.utils';
 
 const Money = Dinero;
 
@@ -59,19 +20,13 @@ export default class Cart {
   }
 
   getTotal() {
-    return this.items.reduce((total, item) => {
-      const amount = Money({ amount: item.product.price * item.quantity });
+    return this.items.reduce((total, { product, quantity, condition }) => {
+      const amount = Money({ amount: product.price * quantity });
       let discount = Money({ amount: 0 });
 
-      if (item.condition) {
-        discount = calculateDiscount(amount, item.quantity, item.condition);
+      if (condition) {
+        discount = calculateDiscount(amount, quantity, condition);
       }
-
-      // if (item.condition?.percentage) {
-      //   discount = calculatePercentageDiscount(amount, item);
-      // } else if (item.condition?.quantity) {
-      //   discount = calculateQuantityDiscount(amount, item);
-      // }
 
       return total.add(amount).subtract(discount);
     }, Money({ amount: 0 }));
@@ -83,12 +38,14 @@ export default class Cart {
   }
 
   summary() {
-    const total = this.getTotal().getAmount();
+    const total = this.getTotal();
+    const formatted = total.toFormat('$0,0.00');
     const items = this.items;
 
     return {
       total,
       items,
+      formatted,
     };
   }
 
@@ -98,7 +55,7 @@ export default class Cart {
     this.items = [];
 
     return {
-      total,
+      total: total.getAmount(),
       items,
     };
   }
